@@ -2,8 +2,10 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace melon
 {

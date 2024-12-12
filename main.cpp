@@ -13,9 +13,5 @@ int main()
   std::cout << f1.getPath() << '\n';
   std::cout << f1.getDir() << '\n';
 
-  std::cout << f1.exists() << '\n';
-  f1.create();
-  std::cout << f1.exists() << '\n';
-
   return 0;
 }
