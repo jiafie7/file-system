@@ -17,7 +17,11 @@ int main()
   Directory dir1("./../utility");
   std::cout << dir1.getPath() << '\n';
 
-  std::cout << Directory::normalizePath("/root/usr/../utility") << '\n';
+  Directory dir2("./../test/a");
+  std::cout << dir2.exists() << '\n';
+  std::cout << dir2.getPath() << '\n';
+  dir2.create();
+  std::cout << dir2.exists() << '\n';
 
 
   return 0;

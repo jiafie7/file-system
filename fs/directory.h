@@ -1,6 +1,9 @@
 #pragma once
 
+#include <dirent.h>
+#include <iostream>
 #include <string>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "utility/string.h"
@@ -19,11 +22,11 @@ namespace melon
         ~Directory() = default;
 
         std::string getPath() const;
-        // bool create() const;
+        bool create() const;
         // bool remove() const;
         // bool copy(const std::string& path);
         // bool rename(const std::string& path);
-        // bool exists() const;
+        bool exists() const;
         // void clear();
         // std::vector<File> file() const;
         // int count() const;

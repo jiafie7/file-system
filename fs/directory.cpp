@@ -26,6 +26,50 @@ char Directory::seperator()
 #endif
 }
 
+bool Directory::create() const
+{
+  // 先得到正确的目录路径
+  // 然后系统调用创建
+  char seperator = Directory::seperator();
+  std::vector<std::string> path_list = String::split(m_path, seperator);
+  
+  std::string dir_path;
+  for (const std::string& path : path_list)
+  {
+    if (path.empty())
+      continue;
+    if (dir_path.empty())
+      dir_path += path;
+    else
+      dir_path += seperator + path;
+      
+    dir_path = Directory::adjustPath(dir_path);
+    std::cout << dir_path << ' ';
+    Directory dir(dir_path);
+    if (dir.exists())
+      continue;
+
+    if (::mkdir(dir_path.c_str(), 0755) != 0)
+      return false;
+  }
+  return true;
+}
+
+bool Directory::exists() const
+{
+  if (m_path.empty())
+    return false;
+
+  struct stat info = {0};
+  if (stat(m_path.c_str(), &info) != 0)
+    return false;
+  
+  if (info.st_mode & S_IFDIR)
+    return true;
+  return false;
+}
+
+
 bool Directory::isAbsolutePath(const std::string& path)
 {
   if (path.empty())
