@@ -61,7 +61,7 @@ bool Directory::create() const
     if (dir.exists())
       continue;
 
-    if (::mkdir(dir_path.c_str(), 0755) != 0)
+    if (mkdir(dir_path.c_str()) != 0)
       return false;
   }
   return true;
@@ -303,5 +303,41 @@ std::string Directory::adjustPath(const std::string& path)
 #endif
 
   return filepath;
+}
+
+int Directory::mkdir(const char* path)
+{
+#ifdef WIN32
+  return ::_mkdir(path);
+#else
+  return ::mkdir(path, 0755);
+#endif
+}
+
+int Directory::rmdir(const char* path)
+{
+#ifdef WIN32
+  return ::_rmdir(path);
+#else
+  return ::rmdir(path);
+#endif
+}
+
+int Directory::unlink(const char* path)
+{
+#ifdef WIN32
+  return ::_unlink(path);
+#else
+  return ::unlink(path);
+#endif
+}
+
+char* Directory::getcwd(char* buf, int len)
+{
+#ifdef WIN32
+  return ::_getcwd(buf, len);
+#else
+  return ::getcwd(buf, len);
+#endif
 }
 

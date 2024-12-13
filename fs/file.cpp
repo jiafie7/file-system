@@ -1,10 +1,11 @@
 #include "fs/file.h"
+#include "fs/directory.h"
 
 using namespace melon::fs;
 
 File::File(const std::string& path)
 {
-  m_path = path;
+  m_path = Directory::normalizePath(path);
 }
        
 std::string File::getPath() const
@@ -16,7 +17,7 @@ std::string File::getDir() const
 {
   if (m_path.empty())
     return "";
-  char seperator = '/';
+  char seperator = Directory::seperator();
   std::size_t pos = m_path.find_last_of(seperator);
   if (pos == std::string::npos)
     return "";
@@ -29,6 +30,9 @@ bool File::create()
     return false;
   
   // to check directory exist
+  Directory dir(getDir());
+  if (dir.exists())
+    dir.create();
 
   std::ofstream ofs(m_path);
   return ofs.is_open();

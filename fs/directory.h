@@ -41,10 +41,10 @@ namespace melon
         static bool isAbsolutePath(const std::string& path);
         static std::string normalizePath(const std::string& path);
         static std::string adjustPath(const std::string& path);
-        // static int mkidr(const char* path);
-        // static int rmdir(const char* path);
-        // static int unlink(const char* path);
-        // static char* getcwd(char* buf, int len);
+        static int mkdir(const char* path);
+        static int rmdir(const char* path);
+        static int unlink(const char* path);
+        static char* getcwd(char* buf, int len);
 
       private:
         std::string m_path;
