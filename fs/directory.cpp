@@ -4,12 +4,12 @@ using namespace melon::fs;
 
 Directory::Directory()
 {
-  m_path = ".";
+  m_path = Directory::normalizePath(".");
 }
 
 Directory::Directory(const std::string& path)
 {
-  m_path = path;
+  m_path = Directory::normalizePath(path);
 }
 
 std::string Directory::getPath() const
@@ -26,35 +26,6 @@ char Directory::seperator()
 #endif
 }
 
-bool Directory::create() const
-{
-  // 先得到正确的目录路径
-  // 然后系统调用创建
-  char seperator = Directory::seperator();
-  std::vector<std::string> path_list = String::split(m_path, seperator);
-  
-  std::string dir_path;
-  for (const std::string& path : path_list)
-  {
-    if (path.empty())
-      continue;
-    if (dir_path.empty())
-      dir_path += path;
-    else
-      dir_path += seperator + path;
-      
-    dir_path = Directory::adjustPath(dir_path);
-    std::cout << dir_path << ' ';
-    Directory dir(dir_path);
-    if (dir.exists())
-      continue;
-
-    if (::mkdir(dir_path.c_str(), 0755) != 0)
-      return false;
-  }
-  return true;
-}
-
 bool Directory::exists() const
 {
   if (m_path.empty())
@@ -69,6 +40,197 @@ bool Directory::exists() const
   return false;
 }
 
+bool Directory::create() const
+{
+  char seperator = Directory::seperator();
+  std::vector<std::string> path_list = String::split(m_path, seperator);
+  
+  std::string dir_path;
+  for (const std::string& path : path_list)
+  {
+    if (path.empty())
+      continue;
+    if (dir_path.empty())
+      dir_path += path;
+    else
+      dir_path += seperator + path;
+      
+    dir_path = Directory::adjustPath(dir_path);
+
+    Directory dir(dir_path);
+    if (dir.exists())
+      continue;
+
+    if (::mkdir(dir_path.c_str(), 0755) != 0)
+      return false;
+  }
+  return true;
+}
+
+// delete current directory
+bool Directory::remove() const
+{
+  DIR* dir = opendir(m_path.c_str());
+  if (dir == nullptr)
+    return false;
+  
+  char seperator = Directory::seperator();
+  struct dirent* entry;
+  while ((entry = readdir(dir)) != nullptr)
+  {
+    std::string name = entry->d_name;
+    if (name == "." || name == "..")
+      continue;
+    std::string fullname = m_path + seperator + name;
+    
+    struct stat info = {0};
+    if (stat(fullname.c_str(), &info) != 0)
+    {
+      std::cerr << "stat file error: " << fullname << '\n';
+      return false;
+    }
+  
+    // Recursively delete subdirectories
+    if (S_ISDIR(info.st_mode))
+    {
+      Directory tmp(fullname);
+      tmp.remove();
+    }
+    else // delete file
+    {
+      unlink(fullname.c_str());
+    }
+  }
+  rmdir(m_path.c_str());
+  return true;
+}
+
+// delete subdirectories and files in current directory
+void Directory::clear()
+{
+  DIR* dir = opendir(m_path.c_str());
+  if (dir == nullptr)
+    return;
+
+  char seperator = Directory::seperator();
+  struct dirent* entry;
+  while ((entry = readdir(dir)) != nullptr)
+  {
+    std::string name = entry->d_name;
+    if (name == "." || name == "..")
+      continue;
+    
+    std::string fullname = m_path + seperator + name;
+    struct stat info = {0};
+    if (stat(fullname.c_str(), &info) != 0)
+    {
+      std::cerr << "stat file error: " + fullname << '\n';
+      return;
+    }
+
+    if (S_ISDIR(info.st_mode))
+    {
+      Directory tmp(fullname);
+      tmp.remove();
+    }
+    else
+    {
+      unlink(fullname.c_str());
+    }
+  }
+}
+
+bool Directory::rename(const std::string& path)
+{
+  if (std::rename(m_path.c_str(), path.c_str()) != 0 )
+    return false;
+  m_path = Directory::normalizePath(path);
+  return true;
+}
+
+std::vector<File> Directory::file() const
+{
+  std::vector<File> files;
+  DIR* dir = opendir(m_path.c_str());
+  if (dir == nullptr)
+    return files;
+
+  char seperator = Directory::seperator();
+  struct dirent* entry;
+  while ((entry = readdir(dir)) != nullptr)
+  {
+    std::string name = entry->d_name;
+    if (name == "." || name == "..")
+      continue;
+
+    std::string fullname = m_path + seperator + name;
+    struct stat info = {0};
+    if (stat(fullname.c_str(), &info) != 0)
+    {
+      std::cerr << "stat file error: " + fullname << '\n';
+      return files;
+    }
+
+    if (S_ISDIR(info.st_mode))
+    {
+      Directory tmp(fullname);
+      std::vector<File> sub_dir = tmp.file();
+      files.insert(files.end(), sub_dir.begin(), sub_dir.end());
+    }
+    else
+    {
+      files.push_back(File(fullname));
+    }
+  }
+  return files;
+}
+
+bool Directory::copy(const std::string& path)
+{
+  Directory dir(path);
+  if (!dir.exists()) 
+    if (!dir.create())
+    {
+      std::cout << "false";
+      return false;
+    }
+
+  std::vector<File> files = file();
+  for (File& file : files)
+  {
+    std::string file_src = file.getPath();
+    std::string file_dist = dir.getPath() + file_src.substr(m_path.length());
+
+    if (!file.copy(file_dist))
+      return false;
+  }
+
+  return true;
+}
+
+int Directory::count() const
+{
+  std::vector<File> files = file();
+  return (int)files.size();
+}
+
+int Directory::line() const
+{
+  int line = 0;
+  std::vector<File> files = file();
+  for (const File& file : files)
+    line += file.line();
+  return line;
+}
+
+long Directory::size() const
+{
+  long size = 0;
+  std::vector<File> files = file();
+  for (const File& file : files)
+    size += file.size();
+  return size;
+}
 
 bool Directory::isAbsolutePath(const std::string& path)
 {
@@ -95,9 +257,6 @@ bool Directory::isAbsolutePath(const std::string& path)
 
 std::string Directory::normalizePath(const std::string& path)
 {
-  // 获取绝对目录
-  // 是绝对目录直接返回
-  // 不是再添加
   char seperator = Directory::seperator();
   std::string filepath = path;
 

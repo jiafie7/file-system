@@ -1,12 +1,15 @@
 #pragma once
 
+#include <algorithm>
 #include <dirent.h>
 #include <iostream>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <vector>
 
 #include "utility/string.h"
+#include "fs/file.h"
 
 using namespace melon::utility;
 
@@ -22,16 +25,16 @@ namespace melon
         ~Directory() = default;
 
         std::string getPath() const;
-        bool create() const;
-        // bool remove() const;
-        // bool copy(const std::string& path);
-        // bool rename(const std::string& path);
         bool exists() const;
-        // void clear();
-        // std::vector<File> file() const;
-        // int count() const;
-        // int line() const;
-        // long size() const;
+        bool create() const;
+        bool remove() const;
+        void clear();
+        bool rename(const std::string& path);
+        std::vector<File> file() const;
+        bool copy(const std::string& path);
+        int count() const;
+        int line() const;
+        long size() const;
 
       public:
         static char seperator();

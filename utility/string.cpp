@@ -60,7 +60,7 @@ std::vector<std::string> String::split(const std::string& input, const std::stri
   output.push_back(input.substr(last));
 
   // output.erase(
-  //     std::remove_if(output.begin(), output.end(), [](const std::string& s) { return s.empty(); }), output.end());
+      // std::remove_if(output.begin(), output.end(), [](const std::string& s) { return s.empty(); }), output.end());
   
   return output;
 }
@@ -137,5 +137,3 @@ std::string String::format(const char* fmt, ...)
 
   return str;
 }
-
-
