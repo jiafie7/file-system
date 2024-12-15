@@ -17,6 +17,5 @@ int main()
   Directory dir1("./../utility");
   std::cout << dir1.getPath() << '\n';
 
-
   return 0;
 }

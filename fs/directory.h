@@ -1,12 +1,18 @@
 #pragma once
 
 #include <algorithm>
-#include <dirent.h>
 #include <iostream>
 #include <string>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <vector>
+
+#ifdef WIN32
+  #include <direct.h>
+  #include "filesystem/dirent_win.h"
+#else
+  #include <dirent.h>
+  #include <sys/stat.h>
+  #include <unistd.h>
+#endif
 
 #include "utility/string.h"
 #include "fs/file.h"

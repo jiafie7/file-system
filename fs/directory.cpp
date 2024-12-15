@@ -287,7 +287,7 @@ std::string Directory::normalizePath(const std::string& path)
 
   std::string temp = String::join(abs_path_list, seperator);
   return adjustPath(temp);
- }
+}
         
 std::string Directory::adjustPath(const std::string& path)
 {

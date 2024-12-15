@@ -29,7 +29,6 @@ bool File::create()
   if (exists())
     return false;
   
-  // to check directory exist
   Directory dir(getDir());
   if (dir.exists())
     dir.create();
