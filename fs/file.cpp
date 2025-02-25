@@ -30,7 +30,7 @@ bool File::create()
     return false;
   
   Directory dir(getDir());
-  if (dir.exists())
+  if (!dir.exists())
     dir.create();
 
   std::ofstream ofs(m_path);
